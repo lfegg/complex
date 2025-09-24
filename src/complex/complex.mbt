@@ -7,6 +7,11 @@ pub(all) struct Complex {
 ///|
 pub impl Show for Complex with output(self, logger) {
   let (r, i) = (self.real, self.imag)
+  
+  if r.is_nan() || i.is_nan() {
+    logger.write_string("undefined")
+    return
+  }
   Show::output(r, logger)
   if i < 0 {
     logger.write_char('-')
@@ -48,9 +53,14 @@ pub impl Neg for Complex with neg(self) {
 ///|
 pub impl Div for Complex with div(self, other) {
   let denom : Double = other.real * other.real + other.imag * other.imag
-  Complex::{
-    real: (self.real * other.real + self.imag * other.imag) / denom,
-    imag: (self.imag * other.real - self.real * other.imag) / denom,
+  
+  if denom == 0.0 {
+    undefined_complex
+  } else {
+    Complex::{
+      real: (self.real * other.real + self.imag * other.imag) / denom,
+      imag: (self.imag * other.real - self.real * other.imag) / denom,
+    }
   }
 }
 
@@ -67,8 +77,15 @@ pub fn conjugate(self : Complex) -> Complex {
 ///|
 pub fn reciprocal(self : Complex) -> Complex {
   let denom : Double = self.real * self.real + self.imag * self.imag
-  Complex::{ real: self.real / denom, imag: -self.imag / denom }
+  if denom == 0.0 {
+    undefined_complex
+  } else {
+    Complex::{ real: self.real / denom, imag: -self.imag / denom }
+  }
 }
 
 ///| The zero complex number.
 pub let zero : Complex = { real: 0, imag: 0 }
+
+///| The undefined complex number (used for division by zero).
+pub let undefined_complex : Complex = { real: @double.not_a_number, imag: @double.not_a_number }
